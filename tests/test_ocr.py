@@ -42,6 +42,12 @@ def test_scanned_pdf_to_word_with_ocr(scanned_pdf: Path, tmp_path: Path) -> None
     )
     assert result.output.exists()
     assert result.ocr_pages == [0]
-    text = "\n".join(p.text for p in Document(str(result.output)).paragraphs).upper()
+
+    doc = Document(str(result.output))
+    parts = [p.text for p in doc.paragraphs]
+    for table in doc.tables:
+        for row in table.rows:
+            parts.extend(cell.text for cell in row.cells)
+    text = "\n".join(parts).upper()
     compact = "".join(ch for ch in text if ch.isalpha())
     assert "TARANMIS" in compact or "TARANMI" in compact

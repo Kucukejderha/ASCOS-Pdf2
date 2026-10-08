@@ -25,6 +25,7 @@ class ConversionOptions:
     ocr_lang: str = "tur+eng"
     ocr_engine: str = "auto"
     force_ocr: bool = False
+    layout_preserve: bool = True
     excel_layout: ExcelLayout = ExcelLayout.PAGE_PER_SHEET
     text_fallback: bool = True
     overwrite: bool = True

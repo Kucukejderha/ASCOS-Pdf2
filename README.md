@@ -6,9 +6,12 @@ Windows masaüstü uygulaması.
 
 ## Özellikler
 
-- **PDF → Word:** Yerleşimi koruyan dönüşüm (pdf2docx). Taranmış sayfalar OCR ile
-  metne çevrilir; karma belgelerde dijital sayfalar yerleşimli, taranmış sayfalar
-  OCR metni olarak aktarılır.
+- **PDF → Word:** Yerleşimi koruyan dönüşüm (pdf2docx). Taranmış sayfalar
+  varsayılan olarak **düzen korumalı OCR** ile aktarılır: sayfa render edilir,
+  OpenCV ile tablo çizgileri tespit edilir ve OCR metni konumlarına yazılarak
+  tablolar gerçek Word tablosu olarak yeniden kurulur. Kapatmak için arayüzdeki
+  "Taranmışta tabloları koru" onay kutusunu veya CLI'da `--no-layout-preserve`
+  seçeneğini kullanın (düz metin OCR'a döner).
 - **PDF → Excel:** Tablo tespiti (PyMuPDF + pdfplumber birlikte, en iyi sonuç
   seçilir), sayı/tarih dönüşümü, sayfa başına ayrı sekme veya tek sekme düzeni.
   Tablo bulunamayan sayfalar tek sütun metin olarak aktarılır.
@@ -54,8 +57,8 @@ py -3.12 -m venv .venv
 ```
 
 CLI seçenekleri: `--to word|excel`, `--pages`, `--out`, `--no-ocr`,
-`--force-ocr`, `--ocr-engine auto|tesseract|rapidocr`, `--ocr-lang`,
-`--layout page_per_sheet|all_in_one`.
+`--force-ocr`, `--no-layout-preserve`, `--ocr-engine auto|tesseract|rapidocr`,
+`--ocr-lang`, `--layout page_per_sheet|all_in_one`.
 
 ## OCR
 

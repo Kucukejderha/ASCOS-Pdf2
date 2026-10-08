@@ -215,6 +215,12 @@ class ConvertTab(QWidget):
         ocr_row.addWidget(self.ocr_check)
         self.force_ocr_check = QCheckBox("Tüm sayfaları OCR et")
         ocr_row.addWidget(self.force_ocr_check)
+        self.layout_check = QCheckBox("Taranmışta tabloları koru")
+        self.layout_check.setToolTip(
+            "Taranmış sayfalarda OCR sonrası tablo/şablon düzeni korunur (daha yavaş)"
+        )
+        self.layout_check.setChecked(True)
+        ocr_row.addWidget(self.layout_check)
         ocr_row.addStretch(1)
         s.addLayout(ocr_row)
 
@@ -311,6 +317,7 @@ class ConvertTab(QWidget):
         self.pages_edit.setText(s.get_str("convert/pages"))
         self.ocr_check.setChecked(s.get_bool("convert/ocr", True))
         self.force_ocr_check.setChecked(s.get_bool("convert/force_ocr", False))
+        self.layout_check.setChecked(s.get_bool("convert/layout_preserve", True))
         engine = s.get_str("convert/engine", "auto")
         index = self.engine_combo.findData(engine)
         if index >= 0:
@@ -329,6 +336,7 @@ class ConvertTab(QWidget):
         s.set_str("convert/pages", self.pages_edit.text().strip())
         s.set_bool("convert/ocr", self.ocr_check.isChecked())
         s.set_bool("convert/force_ocr", self.force_ocr_check.isChecked())
+        s.set_bool("convert/layout_preserve", self.layout_check.isChecked())
         s.set_str("convert/engine", self.engine_combo.currentData() or "auto")
         s.set_str("convert/lang", self.lang_edit.text().strip())
         s.set_str("convert/layout", str(self.excel_layout_combo.currentData() or ExcelLayout.PAGE_PER_SHEET.value))
@@ -411,6 +419,7 @@ class ConvertTab(QWidget):
             pages=self.pages_edit.text().strip(),
             ocr=self.ocr_check.isChecked(),
             force_ocr=self.force_ocr_check.isChecked(),
+            layout_preserve=self.layout_check.isChecked(),
             ocr_engine=self.engine_combo.currentData(),
             ocr_lang=self.lang_edit.text().strip() or "tur+eng",
             excel_layout=ExcelLayout(self.excel_layout_combo.currentData()),

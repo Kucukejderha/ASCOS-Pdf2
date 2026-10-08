@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
+  <Package Name="ASCOS Pdf2"
+           Manufacturer="ASCOS"
+           Version="0.1.1"
+           ProductCode="{B3FA57A4-1010-4A4C-A5E4-01F4D6123818}"
+           UpgradeCode="{A158BC9A-A691-4D59-81E3-A21A2AA6277B}"
+           Scope="perUser"
+           Language="1055"
+           Codepage="65001"
+           Compressed="yes">
+
+    <SummaryInformation Description="ASCOS Pdf2 Belge Atolyesi kurulumu"
+                        Manufacturer="ASCOS" />
+    <MajorUpgrade DowngradeErrorMessage="ASCOS Pdf2'nin daha yeni bir surumu zaten kurulu." />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <ui:WixUI Id="WixUI_Minimal" />
+    <WixVariable Id="WixUILicenseRtf" Value="license\AGPL-3.0.rtf" />
+
+    <util:CloseApplication Id="ClosePdf2"
+                           Target="Pdf2.exe"
+                           CloseMessage="no"
+                           TerminateProcess="1"
+                           RebootPrompt="no" />
+
+    <StandardDirectory Id="LocalAppDataFolder">
+      <Directory Id="ProgramsFolder" Name="Programs">
+        <Directory Id="INSTALLFOLDER" Name="ASCOS Pdf2">
+          <Directory Id="InternalFolder" Name="_internal" />
+        </Directory>
+      </Directory>
+    </StandardDirectory>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="AppMenuFolder" Name="ASCOS Pdf2" />
+    </StandardDirectory>
+
+    <StandardDirectory Id="DesktopFolder" />
+
+    <ComponentGroup Id="AppFiles" Directory="INSTALLFOLDER">
+      <Component Id="MainExecutable" Guid="{7C4E1B62-9D45-4E0A-9A3B-1F5D8C2E6A41}">
+        <File Id="Pdf2Exe" Source="..\..\dist\Pdf2\Pdf2.exe" KeyPath="yes">
+          <Shortcut Id="StartMenuShortcut"
+                    Directory="AppMenuFolder"
+                    Name="ASCOS Pdf2"
+                    Description="PDF donusturme ve duzenleme araci"
+                    WorkingDirectory="INSTALLFOLDER" />
+          <Shortcut Id="DesktopShortcut"
+                    Directory="DesktopFolder"
+                    Name="ASCOS Pdf2"
+                    Description="PDF donusturme ve duzenleme araci"
+                    WorkingDirectory="INSTALLFOLDER" />
+        </File>
+      </Component>
+    </ComponentGroup>
+
+    <ComponentGroup Id="InternalAppFiles" Directory="InternalFolder">
+      <Files Include="..\..\dist\Pdf2\_internal\**" />
+    </ComponentGroup>
+
+    <Feature Id="MainFeature" Title="ASCOS Pdf2" Level="1">
+      <ComponentGroupRef Id="AppFiles" />
+      <ComponentGroupRef Id="InternalAppFiles" />
+    </Feature>
+  </Package>
+</Wix>

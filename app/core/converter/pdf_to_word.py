@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+import tempfile
 import time
 from pathlib import Path
 from typing import Callable
@@ -13,6 +15,7 @@ from app.core.utils import unique_path
 from .docx_fixups import fix_symbol_bullets
 from .ocr import OcrError, get_engine, ocr_page
 from .scanned_detector import analyze_pdf
+from .searchable_pdf import build_searchable_pdf
 
 ProgressCb = Callable[[float, str], None]
 
@@ -95,6 +98,65 @@ def _append_ocr_sections(
     doc.save(str(dst))
 
 
+def _convert_via_searchable(
+    src: Path,
+    dst: Path,
+    selected: list[int],
+    scanned_pages: list[int],
+    options: ConversionOptions,
+    progress: ProgressCb | None,
+    result: ConversionResult,
+) -> bool:
+    """Taranmış sayfaları aranabilir PDF'e çevirip pdf2docx ile dönüştürür.
+
+    Başarılıysa True döner; herhangi bir adım başarısız olursa uyarı ekleyip
+    False döner ve çağıran taraf eski düz metin OCR yoluna düşer.
+    """
+    try:
+        engine = get_engine(options.ocr_engine)
+    except OcrError as exc:
+        result.warnings.append(f"OCR atlandı: {exc}")
+        return False
+
+    tmp = Path(tempfile.gettempdir()) / (
+        f"pdf2_searchable_{os.getpid()}_{int(time.time() * 1000)}.pdf"
+    )
+    try:
+        _emit(progress, 0.05, "Taranmış sayfalar aranabilir hale getiriliyor")
+        build_searchable_pdf(
+            src,
+            tmp,
+            engine,
+            pages=scanned_pages,
+            lang=options.ocr_lang,
+            progress=progress,
+        )
+        _emit(progress, 0.92, "Word'e dönüştürülüyor")
+        cv = Converter(str(tmp))
+        try:
+            cv.convert(str(dst), pages=selected)
+        finally:
+            cv.close()
+        for page_index in scanned_pages:
+            if page_index not in result.ocr_pages:
+                result.ocr_pages.append(page_index)
+        result.warnings.append(
+            f"Taranmış sayfalar {engine.name} ile OCR edildi; "
+            "tablolar ve düzen korunarak aktarıldı"
+        )
+        return True
+    except Exception as exc:  # noqa: BLE001
+        result.warnings.append(
+            f"Düzen korumalı OCR yolu uygulanamadı ({exc}); düz metin OCR'a geçildi"
+        )
+        return False
+    finally:
+        try:
+            tmp.unlink(missing_ok=True)
+        except OSError:
+            pass
+
+
 def convert_pdf_to_word(
     src: str | Path,
     dst: str | Path,
@@ -122,7 +184,16 @@ def convert_pdf_to_word(
     all_scanned = not digital_selected
     mixed = bool(scanned_selected) and bool(digital_selected)
 
-    if all_scanned and options.ocr:
+    layout_done = False
+    if scanned_selected and options.ocr and options.layout_preserve:
+        _emit(progress, 0.04, "Taranmış sayfalar için düzen korumalı OCR")
+        layout_done = _convert_via_searchable(
+            src, dst, selected, scanned_selected, options, progress, result
+        )
+
+    if layout_done:
+        pass
+    elif all_scanned and options.ocr:
         _emit(progress, 0.1, "Taranmış belge algılandı, OCR başlıyor")
         _ocr_text_to_docx(src, dst, selected, options, progress, result)
     elif all_scanned and not options.ocr:

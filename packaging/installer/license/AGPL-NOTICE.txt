@@ -1,0 +1,22 @@
+ASCOS Pdf2 - Lisans Bilgisi
+===========================
+
+Bu uygulama GNU Affero Genel Kamu Lisansi surum 3 (AGPL-3.0) kosullari
+altinda lisanslanmistir. Kaynak kodu:
+https://github.com/Kucukejderha/ASCOS-Pdf2
+
+Uygulama asagidaki ucuncu taraf bilesenleri kullanir:
+
+- PyMuPDF (Artifex) - AGPL-3.0 veya ticari lisans
+- pdf2docx - AGPL-3.0
+- PySide6 (Qt for Python) - LGPL-3.0
+- python-docx, openpyxl - MIT
+- RapidOCR (onnxruntime) - Apache-2.0
+- OpenCV - Apache-2.0
+
+Bu program, yararli olacagi umuduyla ancak HICBIR GARANTI OLMAKSIZIN,
+hatta TICARI ELVERISLILIK veya BELIRLI BIR AMACA UYGUNLUK garantisi
+olmaksizin dagitilmaktadir. Ayrintilar icin AGPL-3.0 metnine bakiniz:
+https://www.gnu.org/licenses/agpl-3.0.html
+
+Kuruluma devam ederek bu kosullari kabul etmis olursunuz.

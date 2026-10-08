@@ -156,6 +156,48 @@ def encrypted_pdf(tmp_path_factory: pytest.TempPathFactory) -> Path:
 
 
 @pytest.fixture(scope="session")
+def scanned_table_pdf(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """Tablolu taranmış sayfa: yalnızca görüntü, metin katmanı yok."""
+    path = tmp_path_factory.mktemp("fixtures") / "scanned_table.pdf"
+    width, height = 1240, 1754
+    img = Image.new("RGB", (width, height), "white")
+    draw = ImageDraw.Draw(img)
+    try:
+        font = ImageFont.truetype("arial.ttf", 40)
+    except Exception:
+        font = ImageFont.load_default(size=40)
+    x0, y0, cell_w, row_h = 120, 300, 250, 120
+    rows = [
+        ["URUN", "ADET", "FIYAT"],
+        ["KALEM", "3", "15,50"],
+        ["DEFTER", "2", "42,75"],
+        ["TOPLAM", "", "140,75"],
+    ]
+    for r in range(len(rows) + 1):
+        draw.line((x0, y0 + r * row_h, x0 + 3 * cell_w, y0 + r * row_h), fill="black", width=4)
+    for c in range(4):
+        draw.line((x0 + c * cell_w, y0, x0 + c * cell_w, y0 + len(rows) * row_h), fill="black", width=4)
+    for r, row in enumerate(rows):
+        for c, cell in enumerate(row):
+            if cell:
+                draw.text(
+                    (x0 + c * cell_w + 15, y0 + r * row_h + 35),
+                    cell,
+                    fill="black",
+                    font=font,
+                )
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+
+    doc = pymupdf.open()
+    page = doc.new_page(width=595, height=842)
+    page.insert_image(page.rect, stream=buf.getvalue())
+    doc.save(str(path))
+    doc.close()
+    return path
+
+
+@pytest.fixture(scope="session")
 def form_pdf(tmp_path_factory: pytest.TempPathFactory) -> Path:
     path = tmp_path_factory.mktemp("fixtures") / "form.pdf"
     doc = pymupdf.open()

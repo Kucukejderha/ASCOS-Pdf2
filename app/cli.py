@@ -20,6 +20,11 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--out", default="", help="Çıktı klasörü")
     parser.add_argument("--no-ocr", action="store_true", help="OCR'ı kapat")
     parser.add_argument("--force-ocr", action="store_true", help="Tüm sayfaları OCR ile aktar")
+    parser.add_argument(
+        "--no-layout-preserve",
+        action="store_true",
+        help="Taranmış belgelerde düzeni korumadan düz metin OCR uygula",
+    )
     parser.add_argument("--ocr-engine", choices=["auto", "tesseract", "rapidocr"], default="auto")
     parser.add_argument("--ocr-lang", default="tur+eng", help="OCR dili, ör: tur+eng")
     parser.add_argument(
@@ -39,6 +44,7 @@ def main(argv: list[str] | None = None) -> int:
         ocr_lang=args.ocr_lang,
         ocr_engine=args.ocr_engine,
         force_ocr=args.force_ocr,
+        layout_preserve=not args.no_layout_preserve,
         excel_layout=ExcelLayout(args.layout),
         text_fallback=not args.no_text_fallback,
     )

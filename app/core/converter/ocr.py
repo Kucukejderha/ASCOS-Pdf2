@@ -25,6 +25,16 @@ class OcrEngine:
     def recognize(self, image: "PILImage", lang: str) -> str:
         raise NotImplementedError
 
+    def recognize_lines(
+        self, image: "PILImage", lang: str
+    ) -> list[tuple[list[tuple[float, float]], str, float]]:
+        """Metin satırlarını kutu koordinatlarıyla döndürür.
+
+        Her öğe: (kutu_noktaları, metin, güven). Kutu noktaları görüntü piksel
+        koordinatındadır.
+        """
+        raise NotImplementedError
+
 
 class TesseractEngine(OcrEngine):
     name = "Tesseract"
@@ -64,6 +74,52 @@ class TesseractEngine(OcrEngine):
 
         return pytesseract.image_to_string(image, lang=self.resolve_lang(lang))
 
+    def recognize_lines(
+        self, image: "PILImage", lang: str
+    ) -> list[tuple[list[tuple[float, float]], str, float]]:
+        import pytesseract
+        from pytesseract import Output
+
+        data = pytesseract.image_to_data(
+            image, lang=self.resolve_lang(lang), output_type=Output.DICT
+        )
+        lines: dict[tuple, dict] = {}
+        for i in range(len(data["text"])):
+            word = str(data["text"][i]).strip()
+            if not word:
+                continue
+            try:
+                confidence = float(data["conf"][i])
+            except (TypeError, ValueError):
+                confidence = 0.0
+            key = (data["block_num"][i], data["par_num"][i], data["line_num"][i])
+            entry = lines.setdefault(
+                key,
+                {"x0": 1e9, "y0": 1e9, "x1": -1e9, "y1": -1e9, "words": [], "conf": []},
+            )
+            x, y = data["left"][i], data["top"][i]
+            w, h = data["width"][i], data["height"][i]
+            entry["x0"] = min(entry["x0"], x)
+            entry["y0"] = min(entry["y0"], y)
+            entry["x1"] = max(entry["x1"], x + w)
+            entry["y1"] = max(entry["y1"], y + h)
+            entry["words"].append(word)
+            entry["conf"].append(confidence)
+
+        result = []
+        for entry in lines.values():
+            box = [
+                (entry["x0"], entry["y0"]),
+                (entry["x1"], entry["y0"]),
+                (entry["x1"], entry["y1"]),
+                (entry["x0"], entry["y1"]),
+            ]
+            confidence = (
+                sum(entry["conf"]) / len(entry["conf"]) / 100 if entry["conf"] else 0.0
+            )
+            result.append((box, " ".join(entry["words"]), confidence))
+        return result
+
 
 class RapidOcrEngine(OcrEngine):
     name = "RapidOCR"
@@ -92,6 +148,23 @@ class RapidOcrEngine(OcrEngine):
         if not result:
             return ""
         return "\n".join(line[1] for line in result)
+
+    def recognize_lines(
+        self, image: "PILImage", lang: str
+    ) -> list[tuple[list[tuple[float, float]], str, float]]:
+        import numpy as np
+        from rapidocr_onnxruntime import RapidOCR
+
+        if self._engine is None:
+            self._engine = RapidOCR()
+        result, _ = self._engine(np.array(image))
+        if not result:
+            return []
+        lines = []
+        for box, text, score in result:
+            points = [(float(p[0]), float(p[1])) for p in box]
+            lines.append((points, str(text), float(score)))
+        return lines
 
 
 def get_engine(preference: str = "auto") -> OcrEngine:
