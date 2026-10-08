@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+dist/
+build/
+*.spec
+!packaging/pdf2.spec
+*.pdf2_tmp.pdf
+*.egg-info/
+.opencode/node_modules/
