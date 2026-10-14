@@ -7,6 +7,8 @@ from pathlib import Path
 from typing import Callable
 
 from docx import Document
+from docx.enum.section import WD_ORIENT
+from docx.shared import Inches
 from pdf2docx import Converter
 
 from app.core.models import ConversionOptions, ConversionResult, ConvertMode
@@ -29,6 +31,18 @@ def _emit(progress: ProgressCb | None, fraction: float, message: str) -> None:
         progress(max(0.0, min(1.0, fraction)), message)
 
 
+def _set_page_geometry(section, width_pt: float, height_pt: float) -> None:
+    section.orientation = (
+        WD_ORIENT.LANDSCAPE if width_pt > height_pt else WD_ORIENT.PORTRAIT
+    )
+    section.page_width = Inches(width_pt / 72)
+    section.page_height = Inches(height_pt / 72)
+    section.top_margin = Inches(0.35)
+    section.bottom_margin = Inches(0.35)
+    section.left_margin = Inches(0.4)
+    section.right_margin = Inches(0.4)
+
+
 def _ocr_text_to_docx(
     src: Path,
     dst: Path,
@@ -48,6 +62,7 @@ def _ocr_text_to_docx(
                 doc.add_page_break()
             page = pdf[page_index]
             text = ocr_page(page, engine, lang=options.ocr_lang)
+            _set_page_geometry(doc.sections[-1], page.rect.width, page.rect.height)
             if text.strip():
                 for line in text.splitlines():
                     doc.add_paragraph(line)
@@ -186,7 +201,7 @@ def convert_pdf_to_word(
 
     layout_done = False
     if scanned_selected and options.ocr and options.layout_preserve:
-        _emit(progress, 0.04, "Taranmış sayfalar için düzen korumalı OCR")
+        _emit(progress, 0.04, "Taranmış sayfalar düzen korumalı yeniden inşa ediliyor")
         layout_done = _convert_via_searchable(
             src, dst, selected, scanned_selected, options, progress, result
         )

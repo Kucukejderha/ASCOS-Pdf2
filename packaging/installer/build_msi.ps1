@@ -8,7 +8,7 @@ $ErrorActionPreference = "Stop"
 $installerDir = $PSScriptRoot
 $root = Split-Path -Parent (Split-Path -Parent $installerDir)
 $wix = "$env:USERPROFILE\.dotnet\tools\wix.exe"
-$version = "0.1.1"
+$version = "0.1.3"
 $msiPath = Join-Path $root "dist\ASCOS-Pdf2-$version.msi"
 
 Write-Output "Proje koku: $root"

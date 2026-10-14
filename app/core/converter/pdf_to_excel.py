@@ -13,8 +13,9 @@ from openpyxl.utils import get_column_letter
 from app.core.models import ConversionOptions, ConversionResult, ConvertMode, ExcelLayout
 from app.core.utils import parse_number, unique_path
 
-from .ocr import OcrError, get_engine, ocr_page
+from .ocr import OcrError, get_engine, ocr_page, render_page
 from .scanned_detector import analyze_pdf
+from .searchable_pdf import extract_ocr_table
 
 ProgressCb = Callable[[float, str], None]
 
@@ -168,14 +169,22 @@ def convert_pdf_to_excel(
 
             if is_scanned:
                 if engine is not None:
-                    text = ocr_page(page, engine, lang=options.ocr_lang)
-                    lines = [line for line in text.splitlines() if line.strip()]
-                    if lines:
-                        tables = [[[line] for line in lines]]
+                    tables = [extract_ocr_table(render_page(page), engine, options.ocr_lang)]
+                    tables = [table for table in tables if table]
+                    if not tables:
+                        text = ocr_page(page, engine, lang=options.ocr_lang)
+                        lines = [line for line in text.splitlines() if line.strip()]
+                        if lines:
+                            tables = [[[line] for line in lines]]
+                            result.warnings.append(
+                                f"Sayfa {page_index + 1}: tablo ızgarası bulunamadı; OCR metni tek sütuna aktarıldı"
+                            )
+                    if tables:
                         result.ocr_pages.append(page_index)
-                        result.warnings.append(
-                            f"Sayfa {page_index + 1}: taranmış sayfa OCR ile metne çevrildi"
-                        )
+                        if len(tables[0]) > 1 and len(tables[0][0]) > 1:
+                            result.warnings.append(
+                                f"Sayfa {page_index + 1}: OCR tablosu {len(tables[0])}×{len(tables[0][0])} hücre olarak çıkarıldı"
+                            )
                 else:
                     result.warnings.append(
                         f"Sayfa {page_index + 1}: taranmış sayfa atlandı (OCR kapalı)"

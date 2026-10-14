@@ -7,7 +7,7 @@ import pytest
 from docx import Document
 
 from app.core.converter.ocr import get_engine
-from app.core.converter.searchable_pdf import build_searchable_pdf
+from app.core.converter.searchable_pdf import build_searchable_pdf, extract_ocr_table
 from app.core.models import ConversionOptions, ConvertMode
 from app.core.pipeline import convert
 
@@ -57,6 +57,29 @@ def test_scanned_table_layout_preserved_in_docx(
     all_text = _norm(_docx_all_text(result.output))
     assert "KALEM" in all_text
     assert "15,50" in all_text or "15.50" in all_text
+    assert len(doc.tables[0].rows) >= 3
+    assert len(doc.tables[0].columns) >= 3
+    # Görsel referans istenmiyor: çıktı tamamen düzenlenebilir metin/tablo olmalı.
+    import zipfile
+
+    names = zipfile.ZipFile(result.output).namelist()
+    assert not any("word/media/" in name for name in names)
+
+
+@pytest.mark.slow
+def test_scanned_table_ocr_extracts_cells(
+    scanned_table_pdf: Path,
+) -> None:
+    import pymupdf
+    from app.core.converter.ocr import render_page
+
+    engine = get_engine("rapidocr")
+    with pymupdf.open(str(scanned_table_pdf)) as pdf:
+        data = extract_ocr_table(render_page(pdf[0]), engine)
+    assert len(data) >= 3
+    assert len(data[0]) >= 3
+    cells = " ".join(cell for row in data for cell in row).upper()
+    assert "KALEM" in cells
 
 
 @pytest.mark.slow
