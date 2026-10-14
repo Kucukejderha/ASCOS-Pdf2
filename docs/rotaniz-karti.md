@@ -1,6 +1,16 @@
-# rotaniz.com — ASCOS Pdf2 kartı (kopyala-yapıştır)
+# rotaniz.com — ASCOS Pdf2 kartı
 
-Hazırlanma tarihi: 2026-10-14 · Sürüm: v0.1.3
+Durum: **YAYINDA** (2026-10-14, REST API ile eklendi) · Sürüm: v0.1.3
+Sayfa: https://rotaniz.com/ascos-araclar/ (WordPress sayfa ID 15)
+
+Kart snippet'i: `docs/ascos-araclar-pdf2-karti.html` (site ile birebir aynı
+`ascos-tool-card` yapısı; DbMount kartından sonra, "Yeni ASCOS araçları…"
+notunun hemen üstüne eklendi).
+
+Kart görseli: Şimdilik CSS ile üretilmiş geçici "PDF2" kutusu kullanılıyor
+(yükleme gerektirmez, aile renklerinde). Gerçek logo hazır olduğunda ikon
+bloğundaki `<div class="ascos-tool-icon" style="...">PDF2</div>` yerine
+`<img class="ascos-tool-icon" src="…/ASCOS-Pdf2-web.png">` konularak değiştirilir.
 
 ## Bağlantılar
 
@@ -13,13 +23,17 @@ Hazırlanma tarihi: 2026-10-14 · Sürüm: v0.1.3
 
 Not: `latest/download/ASCOS-Pdf2-latest.msi` bağlantısı her yeni sürümde kendiliğinden
 güncel MSI'ı gösterir; **sayfayı her sürümde güncellemek gerekmez**. Zip bağlantısı
-sürüm adı içerdiği için yeni sürümde değiştirilmelidir (zip ikincil seçenek olarak
+sürüm adı içerdiği için yeni sürümde değiştirilmelidir (zip ikinci seçenek olarak
 sayfada kalabilir veya çıkarılabilir).
 
-Kart görseli: Logo çalışması beklemede. Hazır olduğunda rotaniz.com'a
-`ASCOS-Pdf2-web.png` (1024×1024) yüklenip kart görseli olarak kullanılacak.
-Görsel hazır olana kadar kart, mevcut diğer kartlarla aynı düzende görsel
-olmadan da yayınlanabilir.
+## Bakım notları
+
+- Site güncellemesi için kullanılan WP uygulama şifresi iş sonrası **iptal
+  edilmelidir** (Kullanıcılar → Profil → Uygulama Şifreleri).
+- `ASCOS Rotaniz.com` reposundaki `backup/rotaniz-db-backup.sql` **bozuk**
+  (dosyadaki `%` karakterleri `{605a2e65…}` jetonuna dönüşmüş); geri yükleme
+  akışından önce yedeğin yeniden alınması gerekir.
+
 
 ## Kart metni (site düzeniyle aynı biçim)
 
